@@ -1,0 +1,36 @@
+name: ClawCloud Auto Login CI
+
+on:
+  schedule:
+    - cron: "23 2 */5 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: clawcloud-auto-login
+  cancel-in-progress: true
+
+jobs:
+  auto-login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright requests pynacl
+          playwright install chromium
+          playwright install-deps
+      - name: Run ClawCloud Auto Login
+        env:
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+          GH_PASSWORD: ${{ secrets.GH_PASSWORD }}
+          GH_SESSION: ${{ secrets.GH_SESSION }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          
+        run: python scripts/auto_login.py
